@@ -31,7 +31,7 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const registerRes = await fetch("http://127.0.0.1:8000/api/users/register/", {
+      const registerRes = await fetch("https://lospujantesbackend-l89k.onrender.com/api/users/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -42,7 +42,7 @@ export default function RegisterPage() {
         throw new Error(JSON.stringify(errorRes));
       }
 
-      const loginRes = await fetch("http://127.0.0.1:8000/api/token/", {
+      const loginRes = await fetch("https://lospujantesbackend-l89k.onrender.com/api/token/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

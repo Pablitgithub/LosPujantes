@@ -13,7 +13,7 @@ export default function HomePage() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
 
-    fetch("http://127.0.0.1:8000/api/auctions/", {
+    fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/", {
       headers: token
         ? {
             Authorization: `Bearer ${token}`,

@@ -21,7 +21,7 @@ export default function UserBidsPage() {
 
   const fetchUserBids = async (token) => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/auctions/misPujas/", {
+      const res = await fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/misPujas/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -44,7 +44,7 @@ export default function UserBidsPage() {
     if (!confirm("¿Estás seguro de que quieres eliminar esta puja?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/auctions/${auctionId}/bid/${bidId}/`, {
+      const res = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/bid/${bidId}/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
