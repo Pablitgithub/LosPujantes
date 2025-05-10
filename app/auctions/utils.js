@@ -98,3 +98,54 @@ export const createBid = async (auctionId, price, token) => {
     throw error;
   }
 };
+
+// Devuelve el rating (si existe) del usuario sobre esta subasta
+export const getUserRatingByAuctionId = async (auctionId) => {
+  const token = localStorage.getItem("access");
+  if (!token) return null;
+  const res = await fetch(
+    `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/?auction=${auctionId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.length > 0 ? data[0] : null;
+};
+
+// Crea o actualiza rating según exista ya
+export const submitRating = async (auctionId, value, existing) => {
+  const token = localStorage.getItem("access");
+  const isNew = !existing;
+  const url = isNew
+    ? `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/`
+    : `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/${existing.id}/`;
+  const method = isNew ? "POST" : "PUT";
+  const body = isNew
+    ? JSON.stringify({ auction: auctionId, value })
+    : JSON.stringify({ value });
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  });
+  if (!res.ok) throw new Error("Error al enviar su valoración");
+  return res.json();
+};
+
+// Elimina un rating
+export const deleteRating = async (ratingId) => {
+  const token = localStorage.getItem("access");
+  const res = await fetch(
+    `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/${ratingId}/`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  if (!res.ok) throw new Error("Error al eliminar su valoración");
+  return true;
+};

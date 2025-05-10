@@ -4,7 +4,11 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Card from "@/components/Card/Card";
-import { getAuctionById, getBidsByAuctionId } from "../utils";
+import {
+  getAuctionById,
+  getBidsByAuctionId,
+} from "../utils";
+import StarRating from "@/components/StarRating";
 
 export default function AuctionDetail() {
   const { id } = useParams();
@@ -43,16 +47,19 @@ export default function AuctionDetail() {
     }
 
     try {
-      const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          price: parseFloat(puja),
-        }),
-      });
+      const response = await fetch(
+        `https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            price: parseFloat(puja),
+          }),
+        }
+      );
 
       if (!response.ok) {
         const contentType = response.headers.get("Content-Type");
@@ -78,9 +85,27 @@ export default function AuctionDetail() {
   return (
     <Card>
       <h2>{subasta.title}</h2>
-      <img src={subasta.thumbnail} alt={subasta.title} className={styles.image} />
-      <p><strong>Descripción:</strong> {subasta.description}</p>
-      <p><strong>Precio inicial:</strong> {subasta.price} €</p>
+      <img
+        src={subasta.thumbnail}
+        alt={subasta.title}
+        className={styles.image}
+      />
+
+      <p>
+        <strong>Descripción:</strong> {subasta.description}
+      </p>
+      <p>
+        <strong>Precio inicial:</strong> {subasta.price} €
+      </p>
+
+      {/* Valoración media */}
+      <p>
+        <strong>Valoración media:</strong>{" "}
+        {subasta.average_rating.toFixed(2)} ⭐
+      </p>
+
+      {/* Componente de votación */}
+      {usuario && <StarRating auctionId={Number(id)} />}
 
       <h3>Pujas recientes:</h3>
       {bids.length === 0 ? (
