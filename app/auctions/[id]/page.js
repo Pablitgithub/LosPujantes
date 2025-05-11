@@ -18,13 +18,13 @@ export default function AuctionDetail() {
   const [subasta, setSubasta] = useState(null);
   const [bids, setBids] = useState([]);
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState({ title: "", body: "" });
   const [puja, setPuja] = useState("");
+  const [newComment, setNewComment] = useState({ title: "", body: "" });
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    // cargar usuario/token desde localStorage
+    // 1) Recuperamos user/token
     const storedUser = localStorage.getItem("username");
     const storedToken = localStorage.getItem("access");
     if (storedUser && storedToken) {
@@ -32,12 +32,12 @@ export default function AuctionDetail() {
       setToken(storedToken);
     }
 
-    // cargar subasta, pujas y comentarios
+    // 2) Cargamos subasta, pujas y comentarios
     async function load() {
       const [subastaData, bidsData, commentsData] = await Promise.all([
         getAuctionById(id),
         getBidsByAuctionId(id),
-        getCommentsByAuctionId(id),
+        getCommentsByAuctionId(id),   // <--- sin pasar token
       ]);
       setSubasta(subastaData);
       setBids(bidsData);
@@ -48,38 +48,32 @@ export default function AuctionDetail() {
 
   const handlePujar = async () => {
     if (!puja || Number(puja) <= 0) {
-      return alert("Introduce una puja válida.");
+      alert("Introduce una puja válida.");
+      return;
     }
-    try {
-      await fetch(
-        `https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ price: parseFloat(puja) }),
-        }
-      );
-      setPuja("");
-      setBids(await getBidsByAuctionId(id));
-    } catch (e) {
-      alert("Error al pujar: " + e.message);
-    }
+    await fetch(
+      `https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ price: parseFloat(puja) }),
+      }
+    );
+    setPuja("");
+    setBids(await getBidsByAuctionId(id));
   };
 
   const handleCommentSubmit = async () => {
     if (!newComment.title.trim() || !newComment.body.trim()) {
-      return alert("Título y texto son obligatorios.");
+      alert("Título y texto son obligatorios.");
+      return;
     }
-    try {
-      await createComment(id, newComment.title, newComment.body, token);
-      setNewComment({ title: "", body: "" });
-      setComments(await getCommentsByAuctionId(id));
-    } catch (e) {
-      alert("Error creando comentario: " + e.message);
-    }
+    await createComment(id, newComment.title, newComment.body, token);
+    setNewComment({ title: "", body: "" });
+    setComments(await getCommentsByAuctionId(id));  // <--- sin token
   };
 
   if (!subasta) return <p>Cargando subasta…</p>;
@@ -100,7 +94,7 @@ export default function AuctionDetail() {
         <strong>Precio inicial:</strong> {subasta.price} €
       </p>
 
-      {/* Valoración media y votación */}
+      {/* Valoración media y componente de votación */}
       <p>
         <strong>Valoración media:</strong>{" "}
         {subasta.average_rating.toFixed(2)} ⭐
@@ -154,7 +148,7 @@ export default function AuctionDetail() {
         </ul>
       )}
 
-      {/* Formulario de nuevo comentario */}
+      {/* Formulario para nuevo comentario */}
       {usuario && (
         <div className={styles.commentForm}>
           <h4>Añadir comentario</h4>
@@ -167,8 +161,8 @@ export default function AuctionDetail() {
             }
           />
           <textarea
-            rows={4}
             placeholder="Tu comentario…"
+            rows={4}
             value={newComment.body}
             onChange={(e) =>
               setNewComment({ ...newComment, body: e.target.value })
