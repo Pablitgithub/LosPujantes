@@ -4,40 +4,46 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Card from "@/components/Card/Card";
+import StarRating from "@/components/StarRating";
 import {
   getAuctionById,
   getBidsByAuctionId,
+  getCommentsByAuctionId,
+  createComment,
 } from "../utils";
-import StarRating from "@/components/StarRating";
 
 export default function AuctionDetail() {
   const { id } = useParams();
   const [subasta, setSubasta] = useState(null);
   const [bids, setBids] = useState([]);
+  const [comments, setComments] = useState([]);
   const [puja, setPuja] = useState("");
+  const [newComment, setNewComment] = useState({ title: "", body: "" });
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    const loadAuction = async () => {
-      const data = await getAuctionById(id);
-      setSubasta(data);
+    // 1. carga subasta, pujas y comentarios
+    const load = async () => {
+      const [auc, bds] = await Promise.all([
+        getAuctionById(id),
+        getBidsByAuctionId(id),
+      ]);
+      setSubasta(auc);
+      setBids(bds);
+
+      const t = localStorage.getItem("access");
+      setToken(t);
+      // carga comentarios (con o sin token)
+      const comms = await getCommentsByAuctionId(id, t);
+      setComments(comms);
     };
-    const loadBids = async () => {
-      const data = await getBidsByAuctionId(id);
-      setBids(data);
-    };
 
-    const storedUser = localStorage.getItem("username");
-    const storedToken = localStorage.getItem("access");
+    // 2. detectar usuario
+    const u = localStorage.getItem("username");
+    if (u) setUsuario(u);
 
-    if (storedUser && storedToken) {
-      setUsuario(storedUser);
-      setToken(storedToken);
-    }
-
-    loadAuction();
-    loadBids();
+    load();
   }, [id]);
 
   const handlePujar = async () => {
@@ -45,9 +51,8 @@ export default function AuctionDetail() {
       alert("Introduce una puja válida.");
       return;
     }
-
     try {
-      const response = await fetch(
+      const resp = await fetch(
         `https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`,
         {
           method: "POST",
@@ -55,32 +60,33 @@ export default function AuctionDetail() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            price: parseFloat(puja),
-          }),
+          body: JSON.stringify({ price: parseFloat(puja) }),
         }
       );
-
-      if (!response.ok) {
-        const contentType = response.headers.get("Content-Type");
-        if (contentType && contentType.includes("application/json")) {
-          const err = await response.json();
-          throw new Error(JSON.stringify(err));
-        } else {
-          const text = await response.text();
-          throw new Error(`Respuesta no JSON: ${text}`);
-        }
-      }
-
+      if (!resp.ok) throw new Error(await resp.text());
       setPuja("");
-      const updated = await getBidsByAuctionId(id);
-      setBids(updated);
-    } catch (err) {
-      alert("Error al pujar: " + err.message);
+      setBids(await getBidsByAuctionId(id));
+    } catch (e) {
+      alert("Error al pujar: " + e.message);
     }
   };
 
-  if (!subasta) return <p>Cargando subasta...</p>;
+  // NUEVO: publicar comentario
+  const handleCommentSubmit = async () => {
+    if (!newComment.title || !newComment.body) {
+      alert("Título y texto son obligatorios.");
+      return;
+    }
+    try {
+      await createComment(id, newComment.title, newComment.body, token);
+      setNewComment({ title: "", body: "" });
+      setComments(await getCommentsByAuctionId(id, token));
+    } catch (e) {
+      alert("Error creando comentario: " + e.message);
+    }
+  };
+
+  if (!subasta) return <p>Cargando subasta…</p>;
 
   return (
     <Card>
@@ -98,15 +104,14 @@ export default function AuctionDetail() {
         <strong>Precio inicial:</strong> {subasta.price} €
       </p>
 
-      {/* Valoración media */}
+      {/* Valoración media y componente de votación */}
       <p>
         <strong>Valoración media:</strong>{" "}
         {subasta.average_rating.toFixed(2)} ⭐
       </p>
-
-      {/* Componente de votación */}
       {usuario && <StarRating auctionId={Number(id)} />}
 
+      {/* Pujas */}
       <h3>Pujas recientes:</h3>
       {bids.length === 0 ? (
         <p>No hay pujas todavía.</p>
@@ -114,12 +119,11 @@ export default function AuctionDetail() {
         <ul>
           {bids.map((bid) => (
             <li key={bid.id}>
-              {bid.price}€ - {bid.bidder}
+              {bid.price}€ – {bid.bidder_username || bid.bidder}
             </li>
           ))}
         </ul>
       )}
-
       {usuario && (
         <>
           <input
@@ -133,6 +137,48 @@ export default function AuctionDetail() {
             Pujar
           </button>
         </>
+      )}
+
+      {/* ────────────────────────────── */}
+      {/* Comentarios */}
+      <h3>Comentarios:</h3>
+      {comments.length === 0 ? (
+        <p>No hay comentarios todavía.</p>
+      ) : (
+        <ul className={styles.commentsList}>
+          {comments.map((c) => (
+            <li key={c.id}>
+              <strong>{c.user_username}</strong>{" "}
+              <span className={styles.commentDate}>[{c.created}]</span>
+              <p className={styles.commentTitle}>{c.title}</p>
+              <p className={styles.commentBody}>{c.body}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Formulario para nuevo comentario */}
+      {usuario && (
+        <div className={styles.commentForm}>
+          <h4>Añadir comentario</h4>
+          <input
+            type="text"
+            placeholder="Título"
+            value={newComment.title}
+            onChange={(e) =>
+              setNewComment({ ...newComment, title: e.target.value })
+            }
+          />
+          <textarea
+            placeholder="Tu comentario…"
+            rows={4}
+            value={newComment.body}
+            onChange={(e) =>
+              setNewComment({ ...newComment, body: e.target.value })
+            }
+          />
+          <button onClick={handleCommentSubmit}>Publicar comentario</button>
+        </div>
       )}
     </Card>
   );

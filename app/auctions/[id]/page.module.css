@@ -45,3 +45,49 @@
 .button:hover {
   background-color: #0056b3;
 }
+
+/* ─── Comentarios ───────────────────────── */
+.commentsList {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+.commentsList li {
+  border-bottom: 1px solid #ddd;
+  padding: 0.75rem 0;
+}
+.commentDate {
+  color: #666;
+  font-size: 0.85rem;
+}
+.commentTitle {
+  font-weight: bold;
+  margin: 0.3rem 0;
+}
+.commentBody {
+  margin: 0.3rem 0 0.5rem;
+}
+.commentForm {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.commentForm input,
+.commentForm textarea {
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.commentForm button {
+  align-self: flex-end;
+  padding: 0.5rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.commentForm button:hover {
+  background-color: #218838;
+}

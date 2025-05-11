@@ -149,3 +149,38 @@ export const deleteRating = async (ratingId) => {
   if (!res.ok) throw new Error("Error al eliminar su valoración");
   return true;
 };
+
+export const getCommentsByAuctionId = async (auctionId, token) => {
+  try {
+    const resp = await fetch(
+      `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`,
+      token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {}
+    );
+    if (!resp.ok) throw new Error();
+    return await resp.json();
+  } catch (err) {
+    console.error("Error cargando comentarios:", err);
+    return [];
+  }
+};
+
+export const createComment = async (auctionId, title, body, token) => {
+  const resp = await fetch(
+    `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title, body }),
+    }
+  );
+  if (!resp.ok) {
+    const err = await resp.json();
+    throw new Error(err.detail || "Error creando comentario");
+  }
+  return await resp.json();
+};
