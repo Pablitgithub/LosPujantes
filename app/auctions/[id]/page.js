@@ -14,35 +14,27 @@ import {
 
 export default function AuctionDetail() {
   const { id } = useParams();
+
   const [subasta, setSubasta] = useState(null);
-  const [bids, setBids] = useState([]);
-  const [comments, setComments] = useState([]);
+  const [bids, setBids] = useState([]);          // aquí tus comentarios
   const [puja, setPuja] = useState("");
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({ title: "", body: "" });
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    // 1. carga subasta, pujas y comentarios
-    const load = async () => {
-      const [auc, bds] = await Promise.all([
+    // Al montar carga subasta, pujas, comentarios, usuario/token
+    async function load() {
+      const [subastaData, bidsData, commentsData] = await Promise.all([
         getAuctionById(id),
         getBidsByAuctionId(id),
+        getCommentsByAuctionId(id),
       ]);
-      setSubasta(auc);
-      setBids(bds);
-
-      const t = localStorage.getItem("access");
-      setToken(t);
-      // carga comentarios (con o sin token)
-      const comms = await getCommentsByAuctionId(id, t);
-      setComments(comms);
-    };
-
-    // 2. detectar usuario
-    const u = localStorage.getItem("username");
-    if (u) setUsuario(u);
-
+      setSubasta(subastaData);
+      setBids(bidsData);
+      setComments(commentsData);
+    }
     load();
   }, [id]);
 
@@ -52,7 +44,7 @@ export default function AuctionDetail() {
       return;
     }
     try {
-      const resp = await fetch(
+      await fetch(
         `https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`,
         {
           method: "POST",
@@ -63,7 +55,6 @@ export default function AuctionDetail() {
           body: JSON.stringify({ price: parseFloat(puja) }),
         }
       );
-      if (!resp.ok) throw new Error(await resp.text());
       setPuja("");
       setBids(await getBidsByAuctionId(id));
     } catch (e) {
@@ -71,16 +62,15 @@ export default function AuctionDetail() {
     }
   };
 
-  // NUEVO: publicar comentario
   const handleCommentSubmit = async () => {
-    if (!newComment.title || !newComment.body) {
+    if (!newComment.title.trim() || !newComment.body.trim()) {
       alert("Título y texto son obligatorios.");
       return;
     }
     try {
       await createComment(id, newComment.title, newComment.body, token);
       setNewComment({ title: "", body: "" });
-      setComments(await getCommentsByAuctionId(id, token));
+      setComments(await getCommentsByAuctionId(id));
     } catch (e) {
       alert("Error creando comentario: " + e.message);
     }
@@ -92,7 +82,7 @@ export default function AuctionDetail() {
     <Card>
       <h2>{subasta.title}</h2>
       <img
-        src={subasta.thumbnail}
+        src={subasta.thumbnail.replace(/^http:\/\//, "https://")}
         alt={subasta.title}
         className={styles.image}
       />
@@ -139,17 +129,21 @@ export default function AuctionDetail() {
         </>
       )}
 
-      {/* ────────────────────────────── */}
       {/* Comentarios */}
       <h3>Comentarios:</h3>
       {comments.length === 0 ? (
-        <p>No hay comentarios todavía.</p>
-      ) : (
++       <p>No hay comentarios todavía.</p>
+     ) : (
+       <ul>…</ul>
+     )}
+      {comments.length > 0 && (
         <ul className={styles.commentsList}>
           {comments.map((c) => (
             <li key={c.id}>
               <strong>{c.user_username}</strong>{" "}
-              <span className={styles.commentDate}>[{c.created}]</span>
+              <span className={styles.commentDate}>
+                [{new Date(c.created).toLocaleDateString()}]
+              </span>
               <p className={styles.commentTitle}>{c.title}</p>
               <p className={styles.commentBody}>{c.body}</p>
             </li>
@@ -177,7 +171,9 @@ export default function AuctionDetail() {
               setNewComment({ ...newComment, body: e.target.value })
             }
           />
-          <button onClick={handleCommentSubmit}>Publicar comentario</button>
+          <button onClick={handleCommentSubmit}>
+            Publicar comentario
+          </button>
         </div>
       )}
     </Card>

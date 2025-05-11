@@ -150,20 +150,17 @@ export const deleteRating = async (ratingId) => {
   return true;
 };
 
-export const getCommentsByAuctionId = async (auctionId, token) => {
-  try {
-    const resp = await fetch(
-      `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`,
-      token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {}
-    );
-    if (!resp.ok) throw new Error();
-    return await resp.json();
-  } catch (err) {
-    console.error("Error cargando comentarios:", err);
-    return [];
-  }
+export const getCommentsByAuctionId = async (auctionId) => {
+   try {
+     const resp = await fetch(
+       `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`
+     );
+     if (!resp.ok) throw new Error("No se pudieron cargar los comentarios");
+     return await resp.json();
+   } catch (err) {
+     console.error("Error cargando comentarios:", err);
+     return [];
+   }
 };
 
 export const createComment = async (auctionId, title, body, token) => {
