@@ -1,7 +1,5 @@
 // app/auctions/utils.js
 
-// app/auctions/utils.js
-
 export const getAuctions = async () => {
   try {
     let allAuctions = [];
@@ -20,7 +18,6 @@ export const getAuctions = async () => {
     return [];
   }
 };
-
 
 export const getCategories = async () => {
   try {
@@ -42,7 +39,6 @@ export const getCategories = async () => {
   }
 };
 
-
 export const getAuctionById = async (id) => {
   try {
     const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/`);
@@ -57,41 +53,35 @@ export const getAuctionById = async (id) => {
 export const getBidsByAuctionId = async (auctionId) => {
   try {
     const token = localStorage.getItem("access");
-
     const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/bid/`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
 
     if (!response.ok) throw new Error("No se pudieron cargar las pujas");
-
     const data = await response.json();
-
-    return Array.isArray(data) ? data : (data.results || []);
+    return Array.isArray(data) ? data : (Array.isArray(data.results) ? data.results : []);
   } catch (error) {
     console.error("Error al obtener pujas:", error);
     return [];
   }
 };
 
-
-export const createBid = async (auctionId, price, token) => {
+export const createBid = async (auctionId, price) => {
+  const token = localStorage.getItem("access");
   try {
     const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/bid/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ price }),
+      body: JSON.stringify({ price })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData?.detail || "Error al crear la puja");
+      throw new Error(errorData.detail || "Error al crear la puja");
     }
-
     return await response.json();
   } catch (error) {
     console.error("Error al crear puja:", error);
@@ -99,7 +89,8 @@ export const createBid = async (auctionId, price, token) => {
   }
 };
 
-// Devuelve el rating (si existe) del usuario sobre esta subasta
+// ————— Nuevas funciones de rating —————
+
 export const getUserRatingByAuctionId = async (auctionId) => {
   const token = localStorage.getItem("access");
   if (!token) return null;
@@ -112,7 +103,6 @@ export const getUserRatingByAuctionId = async (auctionId) => {
   return data.length > 0 ? data[0] : null;
 };
 
-// Crea o actualiza rating según exista ya
 export const submitRating = async (auctionId, value, existing) => {
   const token = localStorage.getItem("access");
   const isNew = !existing;
@@ -120,44 +110,52 @@ export const submitRating = async (auctionId, value, existing) => {
     ? `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/`
     : `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/${existing.id}/`;
   const method = isNew ? "POST" : "PUT";
-  const body = isNew
-    ? JSON.stringify({ auction: auctionId, value })
-    : JSON.stringify({ value });
+  const body = isNew ? JSON.stringify({ auction: auctionId, value }) : JSON.stringify({ value });
 
   const res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`
     },
-    body,
+    body
   });
   if (!res.ok) throw new Error("Error al enviar su valoración");
   return res.json();
 };
 
-// Elimina un rating
 export const deleteRating = async (ratingId) => {
   const token = localStorage.getItem("access");
   const res = await fetch(
     `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/${ratingId}/`,
     {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }
     }
   );
   if (!res.ok) throw new Error("Error al eliminar su valoración");
   return true;
 };
 
-export const getCommentsByAuctionId = async auctionId => {
+// ————— Corrección en comentarios —————
+
+export const getCommentsByAuctionId = async (auctionId) => {
   try {
     const resp = await fetch(
       `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`
     );
     if (!resp.ok) throw new Error("Error cargando comentarios");
-    return await resp.json();
-  } catch {
+    const data = await resp.json();
+    // Si viene paginado, sacar data.results, si no, data directamente
+    if (Array.isArray(data)) {
+      return data;
+    } else if (Array.isArray(data.results)) {
+      return data.results;
+    } else {
+      return [];
+    }
+  } catch (err) {
+    console.error("Error cargando comentarios:", err);
     return [];
   }
 };
