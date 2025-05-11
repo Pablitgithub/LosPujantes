@@ -16,15 +16,23 @@ export default function AuctionDetail() {
   const { id } = useParams();
 
   const [subasta, setSubasta] = useState(null);
-  const [bids, setBids] = useState([]);          // aquí tus comentarios
-  const [puja, setPuja] = useState("");
+  const [bids, setBids] = useState([]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({ title: "", body: "" });
+  const [puja, setPuja] = useState("");
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    // Al montar carga subasta, pujas, comentarios, usuario/token
+    // cargar usuario/token desde localStorage
+    const storedUser = localStorage.getItem("username");
+    const storedToken = localStorage.getItem("access");
+    if (storedUser && storedToken) {
+      setUsuario(storedUser);
+      setToken(storedToken);
+    }
+
+    // cargar subasta, pujas y comentarios
     async function load() {
       const [subastaData, bidsData, commentsData] = await Promise.all([
         getAuctionById(id),
@@ -40,8 +48,7 @@ export default function AuctionDetail() {
 
   const handlePujar = async () => {
     if (!puja || Number(puja) <= 0) {
-      alert("Introduce una puja válida.");
-      return;
+      return alert("Introduce una puja válida.");
     }
     try {
       await fetch(
@@ -64,8 +71,7 @@ export default function AuctionDetail() {
 
   const handleCommentSubmit = async () => {
     if (!newComment.title.trim() || !newComment.body.trim()) {
-      alert("Título y texto son obligatorios.");
-      return;
+      return alert("Título y texto son obligatorios.");
     }
     try {
       await createComment(id, newComment.title, newComment.body, token);
@@ -94,7 +100,7 @@ export default function AuctionDetail() {
         <strong>Precio inicial:</strong> {subasta.price} €
       </p>
 
-      {/* Valoración media y componente de votación */}
+      {/* Valoración media y votación */}
       <p>
         <strong>Valoración media:</strong>{" "}
         {subasta.average_rating.toFixed(2)} ⭐
@@ -132,11 +138,8 @@ export default function AuctionDetail() {
       {/* Comentarios */}
       <h3>Comentarios:</h3>
       {comments.length === 0 ? (
-+       <p>No hay comentarios todavía.</p>
-     ) : (
-       <ul>…</ul>
-     )}
-      {comments.length > 0 && (
+        <p>No hay comentarios todavía.</p>
+      ) : (
         <ul className={styles.commentsList}>
           {comments.map((c) => (
             <li key={c.id}>
@@ -151,7 +154,7 @@ export default function AuctionDetail() {
         </ul>
       )}
 
-      {/* Formulario para nuevo comentario */}
+      {/* Formulario de nuevo comentario */}
       {usuario && (
         <div className={styles.commentForm}>
           <h4>Añadir comentario</h4>
@@ -164,8 +167,8 @@ export default function AuctionDetail() {
             }
           />
           <textarea
-            placeholder="Tu comentario…"
             rows={4}
+            placeholder="Tu comentario…"
             value={newComment.body}
             onChange={(e) =>
               setNewComment({ ...newComment, body: e.target.value })
