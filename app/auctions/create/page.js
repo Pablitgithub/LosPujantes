@@ -32,7 +32,7 @@ export default function CreateAuctionPage() {
     }
 
     // Obtener categorías
-    fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/categories/")
+    fetch("http://127.0.0.1:8000/api/auctions/categories/")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.results)) {
@@ -46,7 +46,7 @@ export default function CreateAuctionPage() {
       .catch((err) => console.error("Error cargando categorías", err));
 
     // Obtener ID del usuario autenticado
-    fetch("https://lospujantesbackend-l89k.onrender.com/api/users/profile/", {
+    fetch("http://127.0.0.1:8000/api/users/profile/", {
       headers: {
         Authorization: `Bearer ${access}`
       }
@@ -77,7 +77,7 @@ export default function CreateAuctionPage() {
     };
 
     try {
-      const res = await fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/", {
+      const res = await fetch("http://127.0.0.1:8000/api/auctions/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

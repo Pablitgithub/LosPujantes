@@ -22,7 +22,7 @@ export default function EditBidPage() {
 
     const fetchBid = async () => {
       try {
-        const res = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/${bidID}/`, {
+        const res = await fetch(`http://127.0.0.1:8000/api/auctions/${id}/bid/${bidID}/`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
             "Content-Type": "application/json",
@@ -45,7 +45,7 @@ export default function EditBidPage() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/${bidID}/`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/auctions/${id}/bid/${bidID}/`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,

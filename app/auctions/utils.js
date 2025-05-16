@@ -3,7 +3,7 @@
 export const getAuctions = async () => {
   try {
     let allAuctions = [];
-    let nextUrl = "https://lospujantesbackend-l89k.onrender.com/api/auctions/";
+    let nextUrl = "http://127.0.0.1:8000/api/auctions/";
 
     while (nextUrl) {
       const response = await fetch(nextUrl);
@@ -21,7 +21,7 @@ export const getAuctions = async () => {
 
 export const getCategories = async () => {
   try {
-    const response = await fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/categories/");
+    const response = await fetch("http://127.0.0.1:8000/api/auctions/categories/");
     const data = await response.json();
 
     if (data.results && Array.isArray(data.results)) {
@@ -41,7 +41,7 @@ export const getCategories = async () => {
 
 export const getAuctionById = async (id) => {
   try {
-    const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/`);
+    const response = await fetch(`http://127.0.0.1:8000/api/auctions/${id}/`);
     if (!response.ok) throw new Error("No se pudo cargar la subasta");
     return await response.json();
   } catch (error) {
@@ -53,7 +53,7 @@ export const getAuctionById = async (id) => {
 export const getBidsByAuctionId = async (auctionId) => {
   try {
     const token = localStorage.getItem("access");
-    const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/bid/`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/auctions/${auctionId}/bid/`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
 
@@ -69,7 +69,7 @@ export const getBidsByAuctionId = async (auctionId) => {
 export const createBid = async (auctionId, price) => {
   const token = localStorage.getItem("access");
   try {
-    const response = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/bid/`, {
+    const response = await fetch(`http://127.0.0.1:8000/api/auctions/${auctionId}/bid/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export const getUserRatingByAuctionId = async (auctionId) => {
   const token = localStorage.getItem("access");
   if (!token) return null;
   const res = await fetch(
-    `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/?auction=${auctionId}`,
+    `http://127.0.0.1:8000/api/auctions/ratings/?auction=${auctionId}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) return null;
@@ -107,8 +107,8 @@ export const submitRating = async (auctionId, value, existing) => {
   const token = localStorage.getItem("access");
   const isNew = !existing;
   const url = isNew
-    ? `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/`
-    : `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/${existing.id}/`;
+    ? `http://127.0.0.1:8000/api/auctions/ratings/`
+    : `http://127.0.0.1:8000/api/auctions/ratings/${existing.id}/`;
   const method = isNew ? "POST" : "PUT";
   const body = isNew ? JSON.stringify({ auction: auctionId, value }) : JSON.stringify({ value });
 
@@ -127,7 +127,7 @@ export const submitRating = async (auctionId, value, existing) => {
 export const deleteRating = async (ratingId) => {
   const token = localStorage.getItem("access");
   const res = await fetch(
-    `https://lospujantesbackend-l89k.onrender.com/api/auctions/ratings/${ratingId}/`,
+    `http://127.0.0.1:8000/api/auctions/ratings/${ratingId}/`,
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
@@ -142,7 +142,7 @@ export const deleteRating = async (ratingId) => {
 export const getCommentsByAuctionId = async (auctionId) => {
   try {
     const resp = await fetch(
-      `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`
+      `http://127.0.0.1:8000/api/auctions/${auctionId}/comments/`
     );
     if (!resp.ok) throw new Error("Error cargando comentarios");
     const data = await resp.json();
@@ -163,7 +163,7 @@ export const getCommentsByAuctionId = async (auctionId) => {
 export const createComment = async (auctionId, title, body) => {
   const token = localStorage.getItem("access");
   const resp = await fetch(
-    `https://lospujantesbackend-l89k.onrender.com/api/auctions/${auctionId}/comments/`,
+    `http://127.0.0.1:8000/api/auctions/${auctionId}/comments/`,
     {
       method: "POST",
       headers: {

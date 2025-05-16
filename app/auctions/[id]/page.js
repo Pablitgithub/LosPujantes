@@ -52,7 +52,7 @@ export default function AuctionDetail() {
       return;
     }
     await fetch(
-      `https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/bid/`,
+      `http://127.0.0.1:8000/api/auctions/${id}/bid/`,
       {
         method: "POST",
         headers: {

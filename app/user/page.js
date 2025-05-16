@@ -25,7 +25,7 @@ export default function UserPage() {
 
   const fetchUserAuctions = async (token) => {
     try {
-      const res = await fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/users/", {
+      const res = await fetch("http://127.0.0.1:8000/api/auctions/users/", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export default function UserPage() {
 
   const fetchUserBids = async (token) => {
     try {
-      const res = await fetch("https://lospujantesbackend-l89k.onrender.com/api/auctions/misPujas/", {
+      const res = await fetch("http://127.0.0.1:8000/api/auctions/misPujas/", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

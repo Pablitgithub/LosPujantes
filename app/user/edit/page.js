@@ -31,7 +31,7 @@ export default function EditUserPage() {
     }
 
     setToken(storedToken);
-    fetch("https://lospujantesbackend-l89k.onrender.com/api/users/profile/", {
+    fetch("http://127.0.0.1:8000/api/users/profile/", {
       headers: {
         Authorization: `Bearer ${storedToken}`,
       },
@@ -60,7 +60,7 @@ export default function EditUserPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("https://lospujantesbackend-l89k.onrender.com/api/users/profile/", {
+      const res = await fetch("http://127.0.0.1:8000/api/users/profile/", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export default function EditUserPage() {
     }
 
     try {
-      const res = await fetch("https://lospujantesbackend-l89k.onrender.com/api/users/change-password/", {
+      const res = await fetch("http://127.0.0.1:8000/api/users/change-password/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

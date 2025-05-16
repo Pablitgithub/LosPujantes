@@ -32,7 +32,7 @@ export default function EditAuctionPage() {
 
     const fetchAuction = async () => {
       try {
-        const res = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/`);
+        const res = await fetch(`http://127.0.0.1:8000/api/auctions/${id}/`);
         if (!res.ok) throw new Error("Error al cargar la subasta");
         const data = await res.json();
         setForm({
@@ -63,7 +63,7 @@ export default function EditAuctionPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch(`https://lospujantesbackend-l89k.onrender.com/api/auctions/${id}/`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/auctions/${id}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
